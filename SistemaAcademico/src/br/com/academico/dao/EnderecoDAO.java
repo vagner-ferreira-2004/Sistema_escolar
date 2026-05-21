@@ -47,7 +47,8 @@ public class EnderecoDAO {
 			ps.close(); //Fecha o PreparedStatement para evitar memory Leak
 			conn.close(); //Fecha conexão com BD
 			
-			return idGerado;
+			return idGerado; // Retorna o ID gerado da PK para ser usado
+							// como FK em outras tabelas relacionadas
 		} catch(Exception e) {
 			throw new Exception("Erro ao salvar" + e.getMessage());
 		}

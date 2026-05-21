@@ -4,16 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import br.com.academico.model.Pessoa;
+import br.com.academico.model.Curso;
 import br.com.academico.util.ConnectionFactory;
 
-public class PessoaDAO {
+public class CursoDAO {
 	private Connection conn;
 	private PreparedStatement ps;
 	
 	
-	
-	public PessoaDAO() throws Exception{
+	//Chama a classe que faz conexão com o Banco
+	public CursoDAO() throws Exception{
 		try {
 			conn = ConnectionFactory.getConnection();
 		} catch(Exception e) {
@@ -21,15 +21,15 @@ public class PessoaDAO {
 		}
 	}
 	
-	
-	public int salvar(Pessoa pessoa) throws Exception {
+	//Método para salvar os dados no banco
+	public int salvar(Curso curso) throws Exception {
 		try {
-			String sql="INSERT INTO pessoas(fk_endereco, cpf_pessoa, nome_pessoa, data_nascimento)  VALUES (?, ?, ?, ?)";
+			String sql="INSERT INTO cursos(nome_curso, periodo_curso, tipo_curso, carga_horaria_curso)  VALUES (?, ?, ?, ?)";
 			ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS); //Parâmetro para retornar ID da PK gerado com AUTO INCREMENT
-			ps.setInt(1, pessoa.getFkEndereco());
-			ps.setString(2, pessoa.getCpfPessoa());
-			ps.setString(3, pessoa.getNomePessoa());
-			ps.setString(4, pessoa.getDataNascimento());
+			ps.setString(1, curso.getNomeCurso());
+			ps.setString(2, curso.getPeriodoCurso());
+			ps.setString(3, curso.getTipoCurso());
+			ps.setInt(4, curso.getCargaHoraria());
 			ps.executeUpdate(); //Realiza o INSERT no BD
 			
 			ResultSet rs = ps.getGeneratedKeys();   // Recupera o ID (PK) gerado automaticamente pelo banco após o INSERT
