@@ -19,7 +19,7 @@ public class AlunoDAO {
 			throw new Exception("Erro "+ e.getLocalizedMessage());
 		}
 	}
-	
+
 	
 	public void salvar(Aluno aluno) throws Exception {
 		try {

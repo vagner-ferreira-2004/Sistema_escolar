@@ -5,7 +5,6 @@ public class Curso {
 	private String nomeCurso;
 	private String periodoCurso;
 	private String tipoCurso;
-	private int cargaHoraria;
 	
 	
 	//Construtor vazio para instanciar objeto sem parâmetros
@@ -53,15 +52,5 @@ public class Curso {
 		this.tipoCurso = tipoCurso;
 	}
 
-
-	public int getCargaHoraria() {
-		return cargaHoraria;
-	}
-
-
-	public void setCargaHoraria(int cargaHoraria) {
-		this.cargaHoraria = cargaHoraria;
-	}
-	
 	
 }

@@ -128,7 +128,6 @@ public class TestaTudo {
             curso.setNomeCurso("Análise e Desenvolvimento de Sistemas");
             curso.setPeriodoCurso("NOTURNO");
             curso.setTipoCurso("Presencial");
-            curso.setCargaHoraria(2400);
 
             // Instancia DAO responsável pela tabela cursos
             CursoDAO cursoDao = new CursoDAO();

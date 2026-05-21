@@ -14,7 +14,6 @@ public class TesteCurso {
             curso.setNomeCurso("Ciência da Computação");
             curso.setPeriodoCurso("NOTURNO");
             curso.setTipoCurso("Presencial");
-            curso.setCargaHoraria(3200);
 
             CursoDAO dao = new CursoDAO();
 

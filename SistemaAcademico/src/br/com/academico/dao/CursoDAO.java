@@ -29,7 +29,6 @@ public class CursoDAO {
 			ps.setString(1, curso.getNomeCurso());
 			ps.setString(2, curso.getPeriodoCurso());
 			ps.setString(3, curso.getTipoCurso());
-			ps.setInt(4, curso.getCargaHoraria());
 			ps.executeUpdate(); //Realiza o INSERT no BD
 			
 			ResultSet rs = ps.getGeneratedKeys();   // Recupera o ID (PK) gerado automaticamente pelo banco após o INSERT
