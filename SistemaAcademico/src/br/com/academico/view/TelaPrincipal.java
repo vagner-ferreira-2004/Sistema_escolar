@@ -3,7 +3,6 @@ package br.com.academico.view;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -12,9 +11,15 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.event.InputEvent;
 import javax.swing.JSeparator;
 import java.awt.event.ActionListener;
@@ -29,24 +34,47 @@ import javax.swing.JButton;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JRadioButton;
+import javax.swing.table.DefaultTableModel;
+import java.awt.CardLayout;
 
 public class TelaPrincipal extends JFrame {
 
 	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
-	private JTextField textField;
-	private JTextField textField_1;
-	private JTextField textField_2;
-	private JTextField textField_6;
+	private JPanel cadastro; 
+	private CardLayout cl;   
 	private JTextField txtRGM;
 	private JTextField txtNome;
 	private JTextField txtEmail;
 	private JTextField txtEndereco;
 	private JTextField txtMunicipio;
+	private JFormattedTextField txtDataNasc;
+	private JFormattedTextField txtCPF;
+	private JFormattedTextField txtTelefone;
+	private JComboBox<String> UF;
+	
+	private JTextField textField;
+	private JTextField textField_1;
+	private JTextField txtCurso;
+	private JTable tabelaConsultar;
+	private JTable tabelaExcluir;
+	private JTable tabelaAlterar;
+	
+	// Lista simulando nosso banco de dados
+	private List<Aluno> listaAlunos = new ArrayList<>();
+	private JTextField txtFaltas;
+	private JTextField textField_2;
+	private JTextField textField_3;
+	private JTextField textField_4;
 
-	/**
-	 * Launch the application.
-	 */
+	 //Classe interna para representar o modelo de dados do Aluno
+	class Aluno {
+		String rgm, nome, dataNasc, cpf, email, endereco, municipio, uf, telefone;
+		Aluno(String rgm, String nome, String dataNasc, String cpf, String email, String endereco, String municipio, String uf, String telefone) {
+			this.rgm = rgm; this.nome = nome; this.dataNasc = dataNasc; this.cpf = cpf;
+			this.email = email; this.endereco = endereco; this.municipio = municipio; this.uf = uf; this.telefone = telefone;
+		}
+	}
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -60,32 +88,68 @@ public class TelaPrincipal extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public TelaPrincipal() throws Exception {
+		// dados fictícios para teste
+		listaAlunos.add(new Aluno("123456-7", "Michel Mendes", "10/05/2004", "111.222.333-44", "michel@email.com", "Rua A, 123", "São Paulo", "SP", "(11) 99999-9999"));
+		//listaAlunos.add(new Aluno("765432-1", "Rafael da Silva", "22/11/2003", "555.666.777-88", "rafael@email.com", "Av B, 456", "São Paulo", "SP", "(11) 88888-8888"));
+		//listaAlunos.add(new Aluno("987654-3", "Matheus Ferreira", "15/08/2002", "999.888.777-66", "matheus@email.com", "Rua C, 789", "Guarulhos", "SP", "(11) 77777-7777"));
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 869, 591);
+		setBounds(100, 100, 869, 561);
 		
+		cl = new CardLayout(0, 0);
+		cadastro = new JPanel();
+		cadastro.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(cadastro);
+		cadastro.setLayout(cl);
+
 		JMenuBar menuBar_1 = new JMenuBar();
 		setJMenuBar(menuBar_1);
 		
 		JMenu mnNewMenu = new JMenu("Aluno");
 		menuBar_1.add(mnNewMenu);
 		
+		// 1. Renomeado de Alterar para Cadastrar
+		JMenuItem Cadastrar = new JMenuItem("Cadastrar");
+		Cadastrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limparCampos(); // Abre limpo para novo cadastro
+				cl.show(cadastro, "telaFormulario");
+			}
+		});
+		mnNewMenu.add(Cadastrar);
+		
+		// 2. Novo item Alterar (que agora exibe a lista para selecionar quem alterar)
+		JMenuItem Alterar = new JMenuItem("Alterar");
+		Alterar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				atualizarTabela(tabelaAlterar);
+				cl.show(cadastro, "telaAlterarLista");
+			}
+		});
+		mnNewMenu.add(Alterar);
+		
+		JMenuItem Consultar = new JMenuItem("Consultar");
+		Consultar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				atualizarTabela(tabelaConsultar);
+				cl.show(cadastro, "telaConsultarLista");
+			}
+		});
+		mnNewMenu.add(Consultar);
+		
+		JMenuItem Excluir = new JMenuItem("Excluir");
+		Excluir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				atualizarTabela(tabelaExcluir);
+				cl.show(cadastro, "telaExcluirLista");
+			}
+		});
+		mnNewMenu.add(Excluir);
+		
 		JMenuItem mntmNewMenuItem = new JMenuItem("Salvar");
 		mntmNewMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		mnNewMenu.add(mntmNewMenuItem);
-		
-		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Alterar");
-		mntmNewMenuItem_1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
-		mnNewMenu.add(mntmNewMenuItem_1);
-		
-		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Excluir");
-		mnNewMenu.add(mntmNewMenuItem_2);
-		
-		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Consultar");
-		mnNewMenu.add(mntmNewMenuItem_3);
 		
 		JSeparator separator = new JSeparator();
 		mnNewMenu.add(separator);
@@ -99,42 +163,14 @@ public class TelaPrincipal extends JFrame {
 		mntmNewMenuItem_4.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
 		mnNewMenu.add(mntmNewMenuItem_4);
 		
-		JMenu mnNewMenu_1 = new JMenu("Notas e Faltas");
-		menuBar_1.add(mnNewMenu_1);
 		
-		JMenuItem mntmNewMenuItem_7 = new JMenuItem("Salvar");
-		mntmNewMenuItem_7.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
-
-		mnNewMenu_1.add(mntmNewMenuItem_7);
+		tabelaConsultar = criarPainelComTabela("telaConsultarLista");
+		tabelaExcluir = criarPainelComTabela("telaExcluirLista");
+		tabelaAlterar = criarPainelComTabela("telaAlterarLista");
 		
-		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Alterar");
-		mntmNewMenuItem_6.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
-		mnNewMenu_1.add(mntmNewMenuItem_6);
-		
-		JMenuItem mntmNewMenuItem_8 = new JMenuItem("Excluir");
-		mnNewMenu_1.add(mntmNewMenuItem_8);
-		
-		JMenuItem mntmNewMenuItem_9 = new JMenuItem("Consultar");
-		mnNewMenu_1.add(mntmNewMenuItem_9);
-		
-		JMenu mnNewMenu_2 = new JMenu("Ajuda");
-		menuBar_1.add(mnNewMenu_2);
-		
-		JMenuItem mntmNewMenuItem_5 = new JMenuItem("Sobre");
-		mntmNewMenuItem_5.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null, "Programa desenvolvido por:\n-----------------------------------------------\nMichel Mendes de Moraes\nRafael da Silva Santiago\nMatheus Ferreira de Almeida Sá\nVitor Ferreira de Assis Gomes\nDavid Ben Cavalcante Bernardo\nKaique de Sá Lima da Silva\n\n\n"  );
-			}
-		});
-		mnNewMenu_2.add(mntmNewMenuItem_5);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(10, 11, 833, 469);
-		contentPane.add(tabbedPane);
+		cadastro.add(tabbedPane, "telaFormulario"); 
 		
 		JPanel DadosPessoais = new JPanel();
 		tabbedPane.addTab("Dados Pessoais", null, DadosPessoais, null);
@@ -189,18 +225,18 @@ public class TelaPrincipal extends JFrame {
 		DadosPessoais.add(lblNewLabel_5_1);
 		
 		txtEndereco = new JTextField();
-		txtEndereco.setBounds(104, 250, 714, 30);
+		txtEndereco.setBounds(104, 250, 549, 30);
 		txtEndereco.setFont(new Font("Arial", Font.PLAIN, 20));
 		txtEndereco.setColumns(10);
 		DadosPessoais.add(txtEndereco);
 		
 		JLabel lblNewLabel_6_1 = new JLabel("Município");
-		lblNewLabel_6_1.setBounds(10, 333, 84, 21);
+		lblNewLabel_6_1.setBounds(10, 401, 84, 21);
 		lblNewLabel_6_1.setFont(new Font("Arial", Font.PLAIN, 20));
 		DadosPessoais.add(lblNewLabel_6_1);
 		
 		txtMunicipio = new JTextField();
-		txtMunicipio.setBounds(104, 328, 442, 30);
+		txtMunicipio.setBounds(104, 396, 442, 30);
 		txtMunicipio.setFont(new Font("Arial", Font.PLAIN, 20));
 		txtMunicipio.setColumns(10);
 		DadosPessoais.add(txtMunicipio);
@@ -210,41 +246,64 @@ public class TelaPrincipal extends JFrame {
 		lblNewLabel_7_1.setBounds(709, 102, 27, 20);
 		DadosPessoais.add(lblNewLabel_7_1);
 		
-		JComboBox UF = new JComboBox<String>();
-		UF.setModel(new DefaultComboBoxModel(new String[] {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}));
+		UF = new JComboBox<String>();
+		UF.setModel(new DefaultComboBoxModel<>(new String[] {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}));
 		UF.setFont(new Font("Arial", Font.PLAIN, 20));
-		UF.setBounds(747, 96, 71, 31	);
+		UF.setBounds(747, 96, 71, 31);
 		DadosPessoais.add(UF);
-		UF.addItem("AC");
-		UF.addItem("AL");
-		UF.addItem("AM");
-		UF.addItem("AP");
-		UF.addItem("BA");
-		UF.addItem("CE");
-		UF.addItem("DF");
-		UF.addItem("ES");
-		UF.addItem("GO");
-		UF.addItem("MA");
 		
-		JFormattedTextField txtDataNasc = new JFormattedTextField(new MaskFormatter("##/##/####"));
+		txtDataNasc = new JFormattedTextField(new MaskFormatter("##/##/####"));
 		txtDataNasc.setFont(new Font("Arial", Font.PLAIN, 20));
 		txtDataNasc.setBounds(203, 97, 127, 30);
 		DadosPessoais.add(txtDataNasc);
 		
-		JFormattedTextField txtCPF = new JFormattedTextField(new MaskFormatter("###.###.###-##"));
+		txtCPF = new JFormattedTextField(new MaskFormatter("###.###.###-##"));
 		txtCPF.setFont(new Font("Arial", Font.PLAIN, 20));
 		txtCPF.setBounds(451, 98, 206, 29);
 		DadosPessoais.add(txtCPF);
 		
 		JLabel lblNewLabel_7_1_1 = new JLabel("Telefone");
 		lblNewLabel_7_1_1.setFont(new Font("Arial", Font.PLAIN, 20));
-		lblNewLabel_7_1_1.setBounds(556, 335, 77, 18);
+		lblNewLabel_7_1_1.setBounds(556, 403, 77, 18);
 		DadosPessoais.add(lblNewLabel_7_1_1);
 		
-		JFormattedTextField txtTelefone = new JFormattedTextField(new MaskFormatter("(##) ####-####"));
+		txtTelefone = new JFormattedTextField(new MaskFormatter("(##) ####-####"));
 		txtTelefone.setFont(new Font("Arial", Font.PLAIN, 20));
-		txtTelefone.setBounds(643, 328, 175, 30);
+		txtTelefone.setBounds(643, 396, 175, 30);
 		DadosPessoais.add(txtTelefone);
+		
+		textField_2 = new JTextField();
+		textField_2.setFont(new Font("Arial", Font.PLAIN, 20));
+		textField_2.setColumns(10);
+		textField_2.setBounds(104, 324, 84, 30);
+		DadosPessoais.add(textField_2);
+		
+		JLabel lblNewLabel_5_1_1 = new JLabel("Número");
+		lblNewLabel_5_1_1.setFont(new Font("Arial", Font.PLAIN, 20));
+		lblNewLabel_5_1_1.setBounds(10, 330, 84, 17);
+		DadosPessoais.add(lblNewLabel_5_1_1);
+		
+		textField_3 = new JTextField();
+		textField_3.setFont(new Font("Arial", Font.PLAIN, 20));
+		textField_3.setColumns(10);
+		textField_3.setBounds(713, 250, 115, 30);
+		DadosPessoais.add(textField_3);
+		
+		JLabel lblNewLabel_5_1_2 = new JLabel("CEP");
+		lblNewLabel_5_1_2.setFont(new Font("Arial", Font.PLAIN, 20));
+		lblNewLabel_5_1_2.setBounds(663, 256, 40, 17);
+		DadosPessoais.add(lblNewLabel_5_1_2);
+		
+		textField_4 = new JTextField();
+		textField_4.setFont(new Font("Arial", Font.PLAIN, 20));
+		textField_4.setColumns(10);
+		textField_4.setBounds(334, 324, 484, 30);
+		DadosPessoais.add(textField_4);
+		
+		JLabel lblNewLabel_5_1_1_1 = new JLabel("Complemento");
+		lblNewLabel_5_1_1_1.setFont(new Font("Arial", Font.PLAIN, 20));
+		lblNewLabel_5_1_1_1.setBounds(203, 330, 121, 17);
+		DadosPessoais.add(lblNewLabel_5_1_1_1);
 		
 		JPanel Curso = new JPanel();
 		tabbedPane.addTab("Curso", null, Curso, null);
@@ -256,7 +315,7 @@ public class TelaPrincipal extends JFrame {
 		Curso.add(lblNewLabel_7_1_2);
 		
 		JComboBox<String> UF_1 = new JComboBox<String>();
-		UF_1.setModel(new DefaultComboBoxModel(new String[] {"Ciência da Computação", "Engenharia Civil / Engenharia de Software", "Direito", "Administração", "Medicina / Psicologia", "Sistemas de Informação"}));
+		UF_1.setModel(new DefaultComboBoxModel<>(new String[] {"Ciência da Computação", "Engenharia Civil / Engenharia de Software", "Direito", "Administração", "Medicina / Psicologia", "Sistemas de Informação"}));
 		UF_1.setBounds(92, 35, 726, 32);
 		UF_1.setFont(new Font("Arial", Font.PLAIN, 20));
 		Curso.add(UF_1);
@@ -272,33 +331,30 @@ public class TelaPrincipal extends JFrame {
 		Curso.add(lblNewLabel_7_1_2_2);
 		
 		JComboBox<String> UF_1_2 = new JComboBox<String>();
-		UF_1_2.setModel(new DefaultComboBoxModel(new String[] {"UNICID", "CESUCA", "UP", "UNIPE", "FSG", "FASS", "UDF"}));
+		UF_1_2.setModel(new DefaultComboBoxModel<>(new String[] {"UNICID", "CESUCA", "UP", "UNIPE", "FSG", "FASS", "UDF"}));
 		UF_1_2.setFont(new Font("Arial", Font.PLAIN, 20));
 		UF_1_2.setBounds(92, 103, 726, 32);
 		Curso.add(UF_1_2);
 		
 		ButtonGroup grupoPeriodo = new ButtonGroup();
 
-		// --- Botão Matutino ---
 		JRadioButton rdbtnNewRadioButton = new JRadioButton("Matutino");
 		rdbtnNewRadioButton.setFont(new Font("Arial", Font.PLAIN, 18));
 		rdbtnNewRadioButton.setBounds(151, 184, 129, 23);
 		Curso.add(rdbtnNewRadioButton);
-		grupoPeriodo.add(rdbtnNewRadioButton); // Adiciona ao grupo lógico
+		grupoPeriodo.add(rdbtnNewRadioButton);
 
-		// --- Botão Vespertino ---
 		JRadioButton rdbtnVespertino = new JRadioButton("Vespertino");
 		rdbtnVespertino.setFont(new Font("Arial", Font.PLAIN, 18));
 		rdbtnVespertino.setBounds(403, 184, 129, 23);
 		Curso.add(rdbtnVespertino);
-		grupoPeriodo.add(rdbtnVespertino); // Adiciona ao grupo lógico
+		grupoPeriodo.add(rdbtnVespertino);
 
-		// --- Botão Noturno ---
 		JRadioButton rdbtnNewRadioButton_1_1 = new JRadioButton("Noturno");
 		rdbtnNewRadioButton_1_1.setFont(new Font("Arial", Font.PLAIN, 18));
 		rdbtnNewRadioButton_1_1.setBounds(675, 184, 129, 23);
 		Curso.add(rdbtnNewRadioButton_1_1);
-		grupoPeriodo.add(rdbtnNewRadioButton_1_1); // Adiciona ao grupo lógico
+		grupoPeriodo.add(rdbtnNewRadioButton_1_1);
 		
 		JButton btnEnviar = new JButton("Enviar");
 		btnEnviar.setFont(new Font("Arial", Font.PLAIN, 18));
@@ -332,59 +388,169 @@ public class TelaPrincipal extends JFrame {
 		NotasFaltas.add(textField_1);
 		textField_1.setColumns(10);
 		
-		textField_2 = new JTextField();
-		textField_2.setEditable(false);
-		textField_2.setFont(new Font("Arial", Font.PLAIN, 18));
-		textField_2.setBounds(10, 76, 808, 33);
-		NotasFaltas.add(textField_2);
-		textField_2.setColumns(10);
+		txtCurso = new JTextField();
+		txtCurso.setEditable(false);
+		txtCurso.setFont(new Font("Arial", Font.PLAIN, 18));
+		txtCurso.setBounds(10, 76, 808, 33);
+		NotasFaltas.add(txtCurso);
+		txtCurso.setColumns(10);
 		
-		JLabel lblNewLabel_4 = new JLabel("Disciplina");
-		lblNewLabel_4.setFont(new Font("Arial", Font.PLAIN, 18));
-		lblNewLabel_4.setBounds(10, 151, 82, 31);
-		NotasFaltas.add(lblNewLabel_4);
+		JLabel lblDisciplina = new JLabel("Disciplina");
+		lblDisciplina.setFont(new Font("Arial", Font.PLAIN, 18));
+		lblDisciplina.setBounds(10, 156, 77, 30);
+		NotasFaltas.add(lblDisciplina);
 		
-		JLabel lblNewLabel_5 = new JLabel("Semestre");
-		lblNewLabel_5.setFont(new Font("Arial", Font.PLAIN, 18));
-		lblNewLabel_5.setBounds(10, 229, 76, 31);
-		NotasFaltas.add(lblNewLabel_5);
+		JComboBox<String> UF_2 = new JComboBox<String>();
+		UF_2.setFont(new Font("Arial", Font.PLAIN, 20));
+		UF_2.setBounds(97, 156, 721, 31);
+		NotasFaltas.add(UF_2);
 		
-		textField_6 = new JTextField();
-		textField_6.setFont(new Font("Arial", Font.PLAIN, 18));
-		textField_6.setBounds(652, 227, 166, 33);
-		NotasFaltas.add(textField_6);
-		textField_6.setColumns(10);
+		JLabel aaaa = new JLabel("Semestre");
+		aaaa.setFont(new Font("Arial", Font.PLAIN, 18));
+		aaaa.setBounds(10, 233, 77, 30);
+		NotasFaltas.add(aaaa);
 		
-		JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Programação Orientada a Objetos", "Banco de Dados", "Calculo Diferencial"}));
-		comboBox.setFont(new Font("Arial", Font.PLAIN, 18));
-		comboBox.setBounds(102, 149, 716, 33);
-		NotasFaltas.add(comboBox);
+		JLabel lblNota = new JLabel("Nota");
+		lblNota.setFont(new Font("Arial", Font.PLAIN, 18));
+		lblNota.setBounds(328, 233, 46, 30);
+		NotasFaltas.add(lblNota);
 		
-		JComboBox comboBox_1 = new JComboBox();
-		comboBox_1.setFont(new Font("Arial", Font.PLAIN, 18));
-		comboBox_1.setModel(new DefaultComboBoxModel(new String[] {"2020-1", "2020-2"}));
-		comboBox_1.setBounds(102, 228, 121, 32);
-		NotasFaltas.add(comboBox_1);
+		JLabel lblFaltas = new JLabel("Faltas");
+		lblFaltas.setFont(new Font("Arial", Font.PLAIN, 18));
+		lblFaltas.setBounds(590, 233, 55, 30);
+		NotasFaltas.add(lblFaltas);
 		
-		JLabel lblNewLabel_5_2 = new JLabel("Nota");
-		lblNewLabel_5_2.setFont(new Font("Arial", Font.PLAIN, 18));
-		lblNewLabel_5_2.setBounds(346, 230, 38, 30);
-		NotasFaltas.add(lblNewLabel_5_2);
+		JComboBox<String> UF_2_1 = new JComboBox<String>();
+		UF_2_1.setModel(new DefaultComboBoxModel(new String[] {"1º", "2º"}));
+		UF_2_1.setFont(new Font("Arial", Font.PLAIN, 20));
+		UF_2_1.setBounds(100, 232, 130, 31);
+		NotasFaltas.add(UF_2_1);
 		
-		JComboBox comboBox_1_1 = new JComboBox();
-		comboBox_1_1.setModel(new DefaultComboBoxModel(new String[] {"0,5", "1,0", "1,5", "2,0", "2,5", "3,0", "3,5", "4,0", "4,5", "5,0"}));
-		comboBox_1_1.setFont(new Font("Arial", Font.PLAIN, 18));
-		comboBox_1_1.setBounds(394, 227, 65, 33);
-		NotasFaltas.add(comboBox_1_1);
+		JComboBox<String> UF_2_1_1 = new JComboBox<String>();
+		UF_2_1_1.setFont(new Font("Arial", Font.PLAIN, 20));
+		UF_2_1_1.setBounds(384, 232, 130, 31);
+		NotasFaltas.add(UF_2_1_1);
 		
-		JLabel lblNewLabel_5_2_1 = new JLabel("Faltas");
-		lblNewLabel_5_2_1.setFont(new Font("Arial", Font.PLAIN, 18));
-		lblNewLabel_5_2_1.setBounds(593, 230, 49, 30);
-		NotasFaltas.add(lblNewLabel_5_2_1);
+		txtFaltas = new JTextField();
+		txtFaltas.setFont(new Font("Arial", Font.PLAIN, 18));
+		txtFaltas.setColumns(10);
+		txtFaltas.setBounds(655, 232, 163, 33);
+		NotasFaltas.add(txtFaltas);
 		
-		JPanel Boletim = new JPanel();
-		tabbedPane.addTab("Boletim", null, Boletim, null);
+		JComboBox<String> UF_2_1_1_1 = new JComboBox<String>();
+		UF_2_1_1_1.setModel(new DefaultComboBoxModel(new String[] {"2025", "2026"}));
+		UF_2_1_1_1.setFont(new Font("Arial", Font.PLAIN, 20));
+		UF_2_1_1_1.setBounds(100, 274, 132, 31);
+		NotasFaltas.add(UF_2_1_1_1);
+		
+		JLabel lblAno = new JLabel("Ano");
+		lblAno.setFont(new Font("Arial", Font.PLAIN, 18));
+		lblAno.setBounds(10, 275, 46, 30);
+		NotasFaltas.add(lblAno);
+	}
 
+	private JTable criarPainelComTabela(String nomeCard) {
+		JPanel painel = new JPanel(new BorderLayout());
+		String[] colunas = {"RGM", "Nome"};
+		DefaultTableModel model = new DefaultTableModel(colunas, 0) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isCellEditable(int row, int column) { return false; } 
+		};
+		
+		JTable tabela = new JTable(model);
+		tabela.setFont(new Font("Arial", Font.PLAIN, 16));
+		tabela.setRowHeight(24);
+		
+		tabela.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) { 
+					int linhaSelecionada = tabela.getSelectedRow();
+					if (linhaSelecionada != -1) {
+						
+						// Se o clique acontecer na tela de EXCLUIR
+						if (nomeCard.equals("telaExcluirLista")) {
+							// Pergunta se o usuário tem certeza
+							int resposta = JOptionPane.showConfirmDialog(
+								null, 
+								"Deseja realmente excluir este aluno?", 
+								"Confirmar Exclusão", 
+								JOptionPane.YES_NO_OPTION
+							);
+							
+							if (resposta == JOptionPane.YES_OPTION) {
+								// Remove da nossa lista dinâmica (Arraylist)
+								listaAlunos.remove(linhaSelecionada);
+								
+								// Atualiza a tabela visual na hora para sumir o nome
+								atualizarTabela(tabela);
+								
+								JOptionPane.showMessageDialog(null, "Aluno excluído com sucesso!");
+							}
+						} else {
+							// Se for Consultar ou Alterar, mantém o comportamento de abrir o formulário
+							Aluno selecionado = listaAlunos.get(linhaSelecionada);
+							preencherFormulario(selecionado);
+							cl.show(cadastro, "telaFormulario"); 
+						}
+						
+					}
+				}
+			}
+		});
+		
+		JScrollPane scroll = new JScrollPane(tabela);
+		painel.add(scroll, BorderLayout.CENTER);
+		
+		// Ajusta o aviso do rodapé dependendo da tela
+		String textoAviso = nomeCard.equals("telaExcluirLista") ? 
+			"Dê um duplo clique sobre o aluno para EXCLUÍ-LO permanentemente" :
+			"Dê um duplo clique sobre o aluno para ver e gerenciar os detalhes";
+			
+		JLabel lblAviso = new JLabel(textoAviso, SwingConstants.CENTER);
+		lblAviso.setFont(new Font("Arial", Font.ITALIC, 14));
+		painel.add(lblAviso, BorderLayout.SOUTH);
+		
+		cadastro.add(painel, nomeCard);
+		return tabela;
+	}
+
+	//Atualiza visualmente as tabelas com os dados atualizados
+	
+	private void atualizarTabela(JTable tabela) {
+		DefaultTableModel model = (DefaultTableModel) tabela.getModel();
+		model.setRowCount(0); // Limpa registros antigos
+		for (Aluno a : listaAlunos) {
+			model.addRow(new Object[]{a.rgm, a.nome});
+		}
+	}
+
+	//Transfere os dados do objeto Aluno para os campos de texto do formulário principal
+	
+	private void preencherFormulario(Aluno a) {
+		txtRGM.setText(a.rgm);
+		txtNome.setText(a.nome);
+		txtDataNasc.setText(a.dataNasc);
+		txtCPF.setText(a.cpf);
+		txtEmail.setText(a.email);
+		txtEndereco.setText(a.endereco);
+		txtMunicipio.setText(a.municipio);
+		UF.setSelectedItem(a.uf);
+		txtTelefone.setText(a.telefone);
+	}
+
+	//Limpa o formulário quando o usuário clicar em cadastrar
+	
+	private void limparCampos() {
+		txtRGM.setText("");
+		txtNome.setText("");
+		txtDataNasc.setValue(null);
+		txtCPF.setValue(null);
+		txtEmail.setText("");
+		txtEndereco.setText("");
+		txtMunicipio.setText("");
+		UF.setSelectedIndex(0);
+		txtTelefone.setValue(null);
 	}
 }
