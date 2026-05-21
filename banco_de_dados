@@ -1,12 +1,11 @@
 CREATE DATABASE IF NOT EXISTS cadastro;
 USE cadastro;
 
-
 -- DADOS PESSOAIS
 
-
 CREATE TABLE enderecos (
-    pk_enderecos INT AUTO_INCREMENT PRIMARY KEY,
+    -- AJUSTADO: Nome da PK alterado para o singular para combinar com as FKs
+    pk_endereco INT AUTO_INCREMENT PRIMARY KEY,
     logradouro VARCHAR(150) NOT NULL,
     cep VARCHAR(9) NOT NULL,
     numero_endereco VARCHAR(10) NOT NULL,
@@ -33,8 +32,9 @@ CREATE TABLE pessoas (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         
+    -- AJUSTADO: Apontando para o novo nome pk_endereco
     CONSTRAINT fk_pessoa_endereco
-        FOREIGN KEY (fk_endereco) REFERENCES enderecos(pk_enderecos) ON DELETE RESTRICT,
+        FOREIGN KEY (fk_endereco) REFERENCES enderecos(pk_endereco) ON DELETE RESTRICT,
 
     CONSTRAINT chk_cpf_formatado
         CHECK (cpf_pessoa REGEXP '^[0-9]{3}\\.[0-9]{3}\\.[0-9]{3}-[0-9]{2}$')
@@ -45,7 +45,7 @@ CREATE INDEX idx_pessoa_nome ON pessoas(nome_pessoa);
 CREATE TABLE emails (
     endereco_email VARCHAR(150) PRIMARY KEY,
     fk_pessoa INT NOT NULL UNIQUE,
-    tipo_email ENUM('Pessoal', 'Institucional', 'Comercial', 'Academico') NOT NULL,
+    tipo_email ENUM('Pessoal', 'Institucional', 'Comercial', 'Academico'),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -53,20 +53,17 @@ CREATE TABLE emails (
         FOREIGN KEY (fk_pessoa) REFERENCES pessoas(pk_pessoa) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE celular (
-    ddd VARCHAR(4) NOT NULL DEFAULT '(11)',
-    numero_celular VARCHAR(10) NOT NULL,
-    fk_pessoa INT NOT NULL UNIQUE,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-- AJUSTADO: Nome da tabela alterado de 'celular' para 'celulares' (padrao plural)
+CREATE TABLE celulares (
+    fk_pessoa INT NOT NULL PRIMARY KEY, 
+    numero_celular VARCHAR(20) NOT NULL,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (ddd, numero_celular),
 
     CONSTRAINT fk_celular_pessoa
         FOREIGN KEY (fk_pessoa) REFERENCES pessoas(pk_pessoa) ON DELETE CASCADE,
 
     CONSTRAINT chk_numero_celular
-        CHECK (numero_celular REGEXP '^[0-9]{5}-[0-9]{4}$')
+        CHECK (numero_celular REGEXP '^\\([0-9]{2}\\) [0-9]{5}-[0-9]{4}$')
 ) ENGINE=InnoDB;
 
 --  DADOS ACADEMICOS (ENTIDADES BASE)
@@ -74,7 +71,7 @@ CREATE TABLE celular (
 CREATE TABLE alunos (
     pk_rgm VARCHAR(15) PRIMARY KEY,
     fk_pessoa INT NOT NULL UNIQUE,
-    tipo_aluno ENUM('PAGANTE', 'BOLSISTA_INTEGRAL', 'BOLSISTA_PARCIAL', 'FINANCIADO') NOT NULL,
+    tipo_aluno ENUM('PAGANTE', 'BOLSISTA_INTEGRAL', 'BOLSISTA_PARCIAL', 'FINANCIADO'),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -85,9 +82,8 @@ CREATE TABLE alunos (
 CREATE TABLE cursos (
     pk_curso INT AUTO_INCREMENT PRIMARY KEY,
     nome_curso VARCHAR(100) NOT NULL UNIQUE,
-    periodo_curso ENUM('Matutino','Vespertino','Noturno'),
-    tipo_curso ENUM('Presencial', 'EAD', 'Hibrido'),
-    carga_horaria_curso INT NOT NULL CHECK (carga_horaria_curso > 0),
+    periodo_curso ENUM('Matutino','Vespertino','Noturno') DEFAULT NULL,
+    tipo_curso ENUM('Presencial', 'EAD', 'Hibrido') DEFAULT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -95,37 +91,25 @@ CREATE TABLE cursos (
 CREATE TABLE disciplinas (
     pk_disciplina INT AUTO_INCREMENT PRIMARY KEY,
     nome_disciplina VARCHAR(100) NOT NULL UNIQUE,
-    carga_horaria_disciplina INT NOT NULL CHECK (carga_horaria_disciplina > 0),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE campus (
     pk_campus INT AUTO_INCREMENT PRIMARY KEY,
-    nome_campus ENUM('Tatuape', 'Itaquera', 'Butanta', 'Barra Funda') NOT NULL UNIQUE,
+    nome_campus VARCHAR(50) NOT NULL UNIQUE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
 CREATE TABLE semestres (
     pk_semestre INT AUTO_INCREMENT PRIMARY KEY,
-    ano INT NOT NULL,
-    semestre_ano INT NOT NULL CHECK (semestre_ano IN (1, 2)),
-    
-    UNIQUE (ano, semestre_ano) 
-) ENGINE=InnoDB;
-
-
-CREATE TABLE periodos (
-    pk_periodo INT AUTO_INCREMENT PRIMARY KEY,
     fk_curso INT NOT NULL,
-    numero_periodo INT NOT NULL CHECK (numero_periodo > 0),
-    descricao VARCHAR(50),
+    numero_semestre INT NOT NULL CHECK (numero_semestre > 0), 
     
-    UNIQUE (fk_curso, numero_periodo), 
+    UNIQUE (fk_curso, numero_semestre), 
     
-    CONSTRAINT fk_periodo_curso 
+    CONSTRAINT fk_semestre_curso 
         FOREIGN KEY (fk_curso) REFERENCES cursos(pk_curso) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -152,29 +136,19 @@ CREATE TABLE campus_curso (
     CONSTRAINT fk_cc_curso FOREIGN KEY (fk_curso) REFERENCES cursos(pk_curso) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Define a grade curricular, quais maerias compoem qual periodo do curso
-CREATE TABLE periodo_disciplina (
-    fk_periodo INT NOT NULL,
-    fk_disciplina INT NOT NULL,
-    
-    CONSTRAINT periodo_disciplina
-    PRIMARY KEY (fk_periodo, fk_disciplina),
-    
-    CONSTRAINT fk_pd_periodo FOREIGN KEY (fk_periodo) REFERENCES periodos(pk_periodo) ON DELETE CASCADE,
-    CONSTRAINT fk_pd_disciplina FOREIGN KEY (fk_disciplina) REFERENCES disciplinas(pk_disciplina) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
---  quais matérias realmente tiveram turma naquele semestre
 CREATE TABLE semestre_disciplina (
     fk_semestre INT NOT NULL,
     fk_disciplina INT NOT NULL,
     
-    PRIMARY KEY (fk_semestre, fk_disciplina),
+    CONSTRAINT pk_semestre_disciplina 
+        PRIMARY KEY (fk_semestre, fk_disciplina),
     
-    CONSTRAINT fk_sd_semestre FOREIGN KEY (fk_semestre) REFERENCES semestres(pk_semestre) ON DELETE CASCADE,
-    CONSTRAINT fk_sd_disciplina FOREIGN KEY (fk_disciplina) REFERENCES disciplinas(pk_disciplina) ON DELETE CASCADE
+    CONSTRAINT fk_sd_semestre 
+        FOREIGN KEY (fk_semestre) REFERENCES semestres(pk_semestre) ON DELETE CASCADE,
+        
+    CONSTRAINT fk_sd_disciplina 
+        FOREIGN KEY (fk_disciplina) REFERENCES disciplinas(pk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-
 
 -- HISTORICO ACADEMICO (NOTAS E FALTAS)
 
@@ -183,16 +157,16 @@ CREATE TABLE faltas (
     fk_semestre INT NOT NULL,
     fk_disciplina INT NOT NULL,
     
-    qtd_faltas INT NOT NULL DEFAULT 0 CHECK (qtd_faltas BETWEEN 0 AND 15),
+    qtd_falta INT NOT NULL DEFAULT 0 CHECK (qtd_falta BETWEEN 0 AND 100),
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         
-    CONSTRAINT pk_faltas 
+    CONSTRAINT pk_falta
         PRIMARY KEY (fk_rgm, fk_semestre, fk_disciplina),
         
-    CONSTRAINT fk_faltas_aluno 
+    CONSTRAINT fk_falta_aluno 
         FOREIGN KEY (fk_rgm) REFERENCES alunos(pk_rgm) ON DELETE CASCADE,
         
-    CONSTRAINT fk_faltas_oferta 
+    CONSTRAINT fk_falta_oferta 
         FOREIGN KEY (fk_semestre, fk_disciplina) 
         REFERENCES semestre_disciplina(fk_semestre, fk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -202,56 +176,40 @@ CREATE TABLE notas (
     fk_semestre INT NOT NULL,
     fk_disciplina INT NOT NULL,
     
-   
-    valor_notaA DECIMAL(3,2) NOT NULL DEFAULT 0.00 CHECK (valor_notaA BETWEEN 0.00 AND 5.00),
-    valor_notaB DECIMAL(3,2) NOT NULL DEFAULT 0.00 CHECK (valor_notaB BETWEEN 0.00 AND 5.00),
-
-    
-    valor_total_nota DECIMAL(4,2) GENERATED ALWAYS AS (valor_notaA + valor_notaB) STORED,
-
+    valor_nota DECIMAL(4,2) NOT NULL DEFAULT 0.00 CHECK (valor_nota BETWEEN 0.00 AND 10.00),
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- AJUSTADO: Correaco do nome da constraint de 'pk_notes' para 'pk_notas'
     CONSTRAINT pk_notas 
         PRIMARY KEY (fk_rgm, fk_semestre, fk_disciplina),
 
-    CONSTRAINT fk_notas_aluno 
+    CONSTRAINT fk_nota_aluno 
         FOREIGN KEY (fk_rgm) REFERENCES alunos(pk_rgm) ON DELETE CASCADE,
         
-    CONSTRAINT fk_notas_oferta 
+    CONSTRAINT fk_nota_oferta 
         FOREIGN KEY (fk_semestre, fk_disciplina) 
         REFERENCES semestre_disciplina(fk_semestre, fk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE boletim (
-    pk_boletim INT AUTO_INCREMENT PRIMARY KEY,
-    
-    fk_nota_rgm VARCHAR(15) NOT NULL,
-    fk_nota_semestre INT NOT NULL,
-    fk_nota_disciplina INT NOT NULL,
-    
-  
-    CONSTRAINT fk_boletim_notas 
-        FOREIGN KEY (fk_nota_rgm, fk_nota_semestre, fk_nota_disciplina) 
-        REFERENCES notas (fk_rgm, fk_semestre, fk_disciplina) ON DELETE CASCADE
-) ENGINE=InnoDB;
+-- BOLETIM (VIEW)
 
--- BOLETIM
 CREATE OR REPLACE VIEW vw_boletim AS
 SELECT 
     a.pk_rgm AS 'RGM',
     p.nome_pessoa AS 'Aluno',
     c.nome_curso AS 'Curso',
-    CONCAT(s.ano, '-', s.semestre_ano) AS 'Semestre',
+    CONCAT(s.numero_semestre, 'º Semestre') AS 'Semestre', 
     d.nome_disciplina AS 'Disciplina',
-    n.valor_notaA AS 'Nota_A',
-    n.valor_notaB AS 'Nota_B',
-    n.valor_total_nota AS 'Nota_Final',
-    COALESCE(f.qtd_faltas, 0) AS 'Faltas',
     
-    -- Logica inteligente de aprovaçao
+    -- Trata a exibicao para mostrar 0.00 se a nota ainda nao tiver sido lançada
+    COALESCE(n.valor_nota, 0.00) AS 'Nota',
+    
+    COALESCE(f.qtd_falta, 0) AS 'Faltas',
+    
+    -- Logica de aprovacao inteligente e dinamica
     CASE 
-        WHEN n.valor_total_nota >= 6.00 AND COALESCE(f.qtd_faltas, 0) <= 10 THEN 'Aprovado'
-        WHEN COALESCE(f.qtd_faltas, 0) > 10 THEN 'Reprovado por Falta'
+        WHEN COALESCE(f.qtd_falta, 0) > 15 THEN 'Reprovado por Falta'
+        WHEN COALESCE(n.valor_nota, 0.00) >= 6.00 THEN 'Aprovado'
         ELSE 'Reprovado por Nota'
     END AS 'Situacao'
 
@@ -259,9 +217,20 @@ FROM alunos a
 JOIN pessoas p ON a.fk_pessoa = p.pk_pessoa
 JOIN aluno_curso ac ON a.pk_rgm = ac.fk_aluno
 JOIN cursos c ON ac.fk_curso = c.pk_curso
-JOIN notas n ON a.pk_rgm = n.fk_rgm
-JOIN disciplinas d ON n.fk_disciplina = d.pk_disciplina
-JOIN semestres s ON n.fk_semestre = s.pk_semestre
-LEFT JOIN faltas f ON n.fk_rgm = f.fk_rgm 
-                   AND n.fk_semestre = f.fk_semestre 
-                   AND n.fk_disciplina = f.fk_disciplina;
+JOIN semestres s ON s.fk_curso = c.pk_curso
+JOIN semestre_disciplina sd ON sd.fk_semestre = s.pk_semestre
+JOIN disciplinas d ON sd.fk_disciplina = d.pk_disciplina
+LEFT JOIN notas n ON n.fk_rgm = a.pk_rgm 
+                 AND n.fk_semestre = s.pk_semestre 
+                 AND n.fk_disciplina = d.pk_disciplina
+LEFT JOIN faltas f ON f.fk_rgm = a.pk_rgm 
+                 AND f.fk_semestre = s.pk_semestre 
+                 AND f.fk_disciplina = d.pk_disciplina;
+                 
+CREATE OR REPLACE VIEW vw_lista_alunos AS
+SELECT 
+    a.pk_rgm AS 'RGM',
+    p.nome_pessoa AS 'Nome'
+FROM alunos a
+JOIN pessoas p ON a.fk_pessoa = p.pk_pessoa
+ORDER BY p.nome_pessoa ASC;
