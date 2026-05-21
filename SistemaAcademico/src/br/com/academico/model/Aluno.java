@@ -9,12 +9,6 @@ public class Aluno {
 		
 	}
 	
-	public Aluno(String pkRgm, int fkPessoa, String tipo_aluno) { //Construtor completo
-		super();
-		this.pkRgm = pkRgm;
-		this.fkPessoa = fkPessoa;
-		this.tipoAluno = tipo_aluno;
-	}
 
 	public String getPkRgm() {
 		return pkRgm;
