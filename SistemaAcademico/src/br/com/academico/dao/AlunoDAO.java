@@ -11,6 +11,7 @@ import br.com.academico.util.ConnectionFactory;
 
 public class AlunoDAO {
 
+<<<<<<< HEAD
     private Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
@@ -193,3 +194,24 @@ public class AlunoDAO {
     }
 
 }
+=======
+	
+	public void salvar(Aluno aluno) throws Exception {
+		try {
+			String sql="INSERT INTO alunos(pk_rgm, fk_pessoa, tipo_aluno)  VALUES (?, ?, ?)";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, aluno.getPkRgm());
+			ps.setInt(2, aluno.getFkPessoa());
+			ps.executeUpdate(); //Realiza o INSERT no BD
+			ps.close(); //Fecha o PreparedStatement para evitar memory Leak
+			conn.close(); //Fecha conexão com BD
+			
+			
+		} catch(Exception e) {
+			throw new Exception("Erro ao salvar" + e.getMessage());
+		}
+	}
+	
+	
+}
+>>>>>>> 853cd2ca5700838311deef39e264989737cd330c
