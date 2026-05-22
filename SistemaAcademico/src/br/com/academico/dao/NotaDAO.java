@@ -6,17 +6,17 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.academico.model.Email;
+import br.com.academico.model.Nota;
 import br.com.academico.util.ConnectionFactory;
 
-public class EmailDAO {
+public class NotaDAO {
 
     private Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
 
     // CONEXÃO
-    public EmailDAO() throws Exception {
+    public NotaDAO() throws Exception {
 
         try {
 
@@ -34,17 +34,23 @@ public class EmailDAO {
     // SALVAR
     // =========================
 
-    public void salvar(Email email) throws Exception {
+    public void salvar(Nota nota) throws Exception {
 
         try {
 
-            String sql = "INSERT INTO emails(endereco_email, fk_pessoa, tipo_email) "
-                       + "VALUES (?, ?)";
+            String sql = "INSERT INTO notas("
+                    + "fk_rgm, "
+                    + "fk_semestre, "
+                    + "fk_disciplina, "
+                    + "valor_nota"
+                    + ") VALUES (?, ?, ?, ?)";
 
             ps = conn.prepareStatement(sql);
 
-            ps.setString(1, email.getEnderecoEmail());
-            ps.setInt(2, email.getFkPessoa());
+            ps.setString(1, nota.getFkRgm());
+            ps.setInt(2, nota.getFkSemestre());
+            ps.setInt(3, nota.getFkDisciplina());
+            ps.setDouble(4, nota.getValorNota());
 
             ps.executeUpdate();
 
@@ -70,20 +76,22 @@ public class EmailDAO {
     // ALTERAR
     // =========================
 
-    public void alterar(Email email, String emailAntigo) throws Exception {
+    public void alterar(Nota nota) throws Exception {
 
         try {
 
-            String sql = "UPDATE emails "
-                       + "SET endereco_email = ?, "
-                       + "fk_pessoa = ?, "
-                       + "WHERE endereco_email = ?";
+            String sql = "UPDATE notas "
+                    + "SET valor_nota = ? "
+                    + "WHERE fk_rgm = ? "
+                    + "AND fk_semestre = ? "
+                    + "AND fk_disciplina = ?";
 
             ps = conn.prepareStatement(sql);
 
-            ps.setString(1, email.getEnderecoEmail());
-            ps.setInt(2, email.getFkPessoa());
-            ps.setString(3, emailAntigo);
+            ps.setDouble(1, nota.getValorNota());
+            ps.setString(2, nota.getFkRgm());
+            ps.setInt(3, nota.getFkSemestre());
+            ps.setInt(4, nota.getFkDisciplina());
 
             ps.executeUpdate();
 
@@ -109,16 +117,22 @@ public class EmailDAO {
     // EXCLUIR
     // =========================
 
-    public void excluir(String enderecoEmail) throws Exception {
+    public void excluir(String fkRgm,
+                        int fkSemestre,
+                        int fkDisciplina) throws Exception {
 
         try {
 
-            String sql = "DELETE FROM emails "
-                       + "WHERE endereco_email = ?";
+            String sql = "DELETE FROM notas "
+                    + "WHERE fk_rgm = ? "
+                    + "AND fk_semestre = ? "
+                    + "AND fk_disciplina = ?";
 
             ps = conn.prepareStatement(sql);
 
-            ps.setString(1, enderecoEmail);
+            ps.setString(1, fkRgm);
+            ps.setInt(2, fkSemestre);
+            ps.setInt(3, fkDisciplina);
 
             ps.executeUpdate();
 
@@ -144,26 +158,28 @@ public class EmailDAO {
     // LISTAR
     // =========================
 
-    public List<Email> listar() throws Exception {
+    public List<Nota> listar() throws Exception {
 
         try {
 
-            String sql = "SELECT * FROM emails ORDER BY endereco_email";
+            String sql = "SELECT * FROM notas ORDER BY fk_rgm";
 
             ps = conn.prepareStatement(sql);
 
             rs = ps.executeQuery();
 
-            List<Email> lista = new ArrayList<>();
+            List<Nota> lista = new ArrayList<>();
 
             while (rs.next()) {
 
-                Email e = new Email();
+                Nota n = new Nota();
 
-                e.setEnderecoEmail(rs.getString("endereco_email"));
-                e.setFkPessoa(rs.getInt("fk_pessoa"));
+                n.setFkRgm(rs.getString("fk_rgm"));
+                n.setFkSemestre(rs.getInt("fk_semestre"));
+                n.setFkDisciplina(rs.getInt("fk_disciplina"));
+                n.setValorNota(rs.getDouble("valor_nota"));
 
-                lista.add(e);
+                lista.add(n);
 
             }
 

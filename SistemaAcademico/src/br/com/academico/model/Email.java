@@ -3,10 +3,7 @@ package br.com.academico.model;
 public class Email {
 	private String enderecoEmail;
 	private int fkPessoa;
-	private String tipoEmail; // Campo atualmente utilizando DEFAULT no banco de dados,
-    						  // porém mantido na model pensando em futuras implementações
-    						  // como emails institucionais, acadêmicos ou comerciais.
-	
+
 	
 	//Construtor vazio para instanciar objeto sem parâmetros
 	public Email() {
@@ -34,13 +31,4 @@ public class Email {
 	}
 
 
-	public String getTipoEmail() {
-		return tipoEmail;
-	}
-
-
-	public void setTipoEmail(String tipoEmail) {
-		this.tipoEmail = tipoEmail;
-	}
-	
 }

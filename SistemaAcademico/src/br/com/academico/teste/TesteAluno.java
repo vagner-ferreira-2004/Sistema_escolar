@@ -13,7 +13,6 @@ public class TesteAluno {
 			
 			aluno.setPkRgm("1744324499");
 			aluno.setFkPessoa(1);
-			aluno.setTipoAluno("BOLSISTA_INTEGRAL");
 			
 			
 			AlunoDAO dao = new AlunoDAO();

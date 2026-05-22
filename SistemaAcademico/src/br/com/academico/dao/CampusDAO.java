@@ -6,17 +6,17 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.academico.model.Email;
+import br.com.academico.model.Campus;
 import br.com.academico.util.ConnectionFactory;
 
-public class EmailDAO {
+public class CampusDAO {
 
     private Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
 
     // CONEXÃO
-    public EmailDAO() throws Exception {
+    public CampusDAO() throws Exception {
 
         try {
 
@@ -34,25 +34,39 @@ public class EmailDAO {
     // SALVAR
     // =========================
 
-    public void salvar(Email email) throws Exception {
+    public int salvar(Campus campus) throws Exception {
 
         try {
 
-            String sql = "INSERT INTO emails(endereco_email, fk_pessoa, tipo_email) "
-                       + "VALUES (?, ?)";
+            String sql = "INSERT INTO campus(nome_campus) VALUES (?)";
 
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 
-            ps.setString(1, email.getEnderecoEmail());
-            ps.setInt(2, email.getFkPessoa());
+            ps.setString(1, campus.getNomeCampus());
 
             ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+
+            int idGerado = 0;
+
+            if (rs.next()) {
+
+                idGerado = rs.getInt(1);
+
+            }
+
+            return idGerado;
 
         } catch (Exception e) {
 
             throw new Exception("Erro ao salvar: " + e.getMessage());
 
         } finally {
+
+            if (rs != null) {
+                rs.close();
+            }
 
             if (ps != null) {
                 ps.close();
@@ -70,20 +84,18 @@ public class EmailDAO {
     // ALTERAR
     // =========================
 
-    public void alterar(Email email, String emailAntigo) throws Exception {
+    public void alterar(Campus campus) throws Exception {
 
         try {
 
-            String sql = "UPDATE emails "
-                       + "SET endereco_email = ?, "
-                       + "fk_pessoa = ?, "
-                       + "WHERE endereco_email = ?";
+            String sql = "UPDATE campus "
+                       + "SET nome_campus = ? "
+                       + "WHERE pk_campus = ?";
 
             ps = conn.prepareStatement(sql);
 
-            ps.setString(1, email.getEnderecoEmail());
-            ps.setInt(2, email.getFkPessoa());
-            ps.setString(3, emailAntigo);
+            ps.setString(1, campus.getNomeCampus());
+            ps.setInt(2, campus.getPkCampus());
 
             ps.executeUpdate();
 
@@ -109,16 +121,16 @@ public class EmailDAO {
     // EXCLUIR
     // =========================
 
-    public void excluir(String enderecoEmail) throws Exception {
+    public void excluir(int pkCampus) throws Exception {
 
         try {
 
-            String sql = "DELETE FROM emails "
-                       + "WHERE endereco_email = ?";
+            String sql = "DELETE FROM campus "
+                       + "WHERE pk_campus = ?";
 
             ps = conn.prepareStatement(sql);
 
-            ps.setString(1, enderecoEmail);
+            ps.setInt(1, pkCampus);
 
             ps.executeUpdate();
 
@@ -144,26 +156,26 @@ public class EmailDAO {
     // LISTAR
     // =========================
 
-    public List<Email> listar() throws Exception {
+    public List<Campus> listar() throws Exception {
 
         try {
 
-            String sql = "SELECT * FROM emails ORDER BY endereco_email";
+            String sql = "SELECT * FROM campus ORDER BY nome_campus";
 
             ps = conn.prepareStatement(sql);
 
             rs = ps.executeQuery();
 
-            List<Email> lista = new ArrayList<>();
+            List<Campus> lista = new ArrayList<>();
 
             while (rs.next()) {
 
-                Email e = new Email();
+                Campus c = new Campus();
 
-                e.setEnderecoEmail(rs.getString("endereco_email"));
-                e.setFkPessoa(rs.getInt("fk_pessoa"));
+                c.setPkCampus(rs.getInt("pk_campus"));
+                c.setNomeCampus(rs.getString("nome_campus"));
 
-                lista.add(e);
+                lista.add(c);
 
             }
 
