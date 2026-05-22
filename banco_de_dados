@@ -9,7 +9,7 @@ CREATE TABLE enderecos (
     logradouro VARCHAR(150) NOT NULL,
     cep VARCHAR(9) NOT NULL,
     numero_endereco VARCHAR(10) NOT NULL,
-    VARCHAR(100) DEFAULT NULL,
+    complemento VARCHAR(100) DEFAULT NULL,
     municipio VARCHAR(100) NOT NULL,
     uf ENUM(
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES',
