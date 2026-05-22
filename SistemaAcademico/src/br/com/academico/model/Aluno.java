@@ -3,7 +3,6 @@ package br.com.academico.model;
 public class Aluno {
 	private String pkRgm;
 	private int fkPessoa;
-	private String tipoAluno;
 	
 	public Aluno() { //Construtor vazio para instanciar objeto sem parâmetros
 		
@@ -26,13 +25,5 @@ public class Aluno {
 		this.fkPessoa = fkPessoa;
 	}
 
-	public String getTipoAluno() {
-		return tipoAluno;
-	}
-
-	public void setTipoAluno(String tipo_aluno) {
-		this.tipoAluno = tipo_aluno;
-	}
-	
 	
 }

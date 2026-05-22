@@ -27,7 +27,6 @@ public class AlunoDAO {
 			ps = conn.prepareStatement(sql);
 			ps.setString(1, aluno.getPkRgm());
 			ps.setInt(2, aluno.getFkPessoa());
-			ps.setString(3, aluno.getTipoAluno());
 			ps.executeUpdate(); //Realiza o INSERT no BD
 			ps.close(); //Fecha o PreparedStatement para evitar memory Leak
 			conn.close(); //Fecha conexão com BD

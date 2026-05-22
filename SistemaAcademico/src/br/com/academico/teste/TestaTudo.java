@@ -108,7 +108,6 @@ public class TestaTudo {
             aluno.setFkPessoa(idPessoa);
 
             // Define o tipo do aluno
-            aluno.setTipoAluno("BOLSISTA_PARCIAL");
 
             // Instancia DAO responsável pela tabela alunos
             AlunoDAO alunoDao = new AlunoDAO();
