@@ -81,7 +81,7 @@ CREATE TABLE alunos (
 
 CREATE TABLE cursos (
     pk_curso INT AUTO_INCREMENT PRIMARY KEY,
-    nome_curso VARCHAR(100) NOT NULL UNIQUE,
+    nome_curso VARCHAR(100) NOT NULL,
     periodo_curso ENUM('Matutino','Vespertino','Noturno') DEFAULT NULL,
     tipo_curso ENUM('Presencial', 'EAD', 'Hibrido') DEFAULT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -90,7 +90,7 @@ CREATE TABLE cursos (
 
 CREATE TABLE disciplinas (
     pk_disciplina INT AUTO_INCREMENT PRIMARY KEY,
-    nome_disciplina VARCHAR(100) NOT NULL UNIQUE,
+    nome_disciplina VARCHAR(100) NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
