@@ -1,16 +1,16 @@
 CREATE DATABASE IF NOT EXISTS cadastro;
 USE cadastro;
 
-
+-- ==========================================
 -- DADOS PESSOAIS
-
+-- ==========================================
 
 CREATE TABLE enderecos (
     pk_enderecos INT AUTO_INCREMENT PRIMARY KEY,
     logradouro VARCHAR(150) NOT NULL,
     cep VARCHAR(9) NOT NULL,
     numero_endereco VARCHAR(10) NOT NULL,
-    complemento ENUM('casa A', 'casa B', 'apartamento') DEFAULT NULL,
+    complemento VARCHAR(100) DEFAULT NULL, -- CORRIGIDO AQUI (Livre)
     municipio VARCHAR(100) NOT NULL,
     uf ENUM(
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES',
@@ -45,7 +45,7 @@ CREATE INDEX idx_pessoa_nome ON pessoas(nome_pessoa);
 CREATE TABLE emails (
     endereco_email VARCHAR(150) PRIMARY KEY,
     fk_pessoa INT NOT NULL UNIQUE,
-    tipo_email ENUM('Pessoal', 'Institucional', 'Comercial', 'Academico') NOT NULL,
+    tipo_email VARCHAR(50) DEFAULT 'Pessoal', -- CORRIGIDO AQUI (Padrão)
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -69,12 +69,14 @@ CREATE TABLE celular (
         CHECK (numero_celular REGEXP '^[0-9]{5}-[0-9]{4}$')
 ) ENGINE=InnoDB;
 
---  DADOS ACADEMICOS (ENTIDADES BASE)
+-- ==========================================
+-- DADOS ACADÊMICOS
+-- ==========================================
 
 CREATE TABLE alunos (
     pk_rgm VARCHAR(15) PRIMARY KEY,
     fk_pessoa INT NOT NULL UNIQUE,
-    tipo_aluno ENUM('PAGANTE', 'BOLSISTA_INTEGRAL', 'BOLSISTA_PARCIAL', 'FINANCIADO') NOT NULL,
+    tipo_aluno VARCHAR(50) DEFAULT 'PAGANTE', -- CORRIGIDO AQUI (Padrão)
     status_aluno ENUM('APROVADO', 'REPROVADO'),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -88,7 +90,7 @@ CREATE TABLE cursos (
     nome_curso VARCHAR(100) NOT NULL UNIQUE,
     periodo_curso ENUM('Matutino','Vespertino','Noturno'),
     tipo_curso ENUM('Presencial', 'EAD', 'Hibrido'),
-    carga_horaria_curso INT NOT NULL CHECK (carga_horaria_curso > 0),
+    carga_horaria_curso INT NOT NULL DEFAULT 3000 CHECK (carga_horaria_curso > 0), -- Evita erro de NULL
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -96,7 +98,7 @@ CREATE TABLE cursos (
 CREATE TABLE disciplinas (
     pk_disciplina INT AUTO_INCREMENT PRIMARY KEY,
     nome_disciplina VARCHAR(100) NOT NULL UNIQUE,
-    carga_horaria_disciplina INT NOT NULL CHECK (carga_horaria_disciplina > 0),
+    carga_horaria_disciplina INT NOT NULL DEFAULT 80 CHECK (carga_horaria_disciplina > 0), -- Evita erro de NULL
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -108,7 +110,6 @@ CREATE TABLE campus (
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
 CREATE TABLE semestres (
     pk_semestre INT AUTO_INCREMENT PRIMARY KEY,
     ano INT NOT NULL,
@@ -116,7 +117,6 @@ CREATE TABLE semestres (
     
     UNIQUE (ano, semestre_ano) 
 ) ENGINE=InnoDB;
-
 
 CREATE TABLE periodos (
     pk_periodo INT AUTO_INCREMENT PRIMARY KEY,
@@ -130,7 +130,9 @@ CREATE TABLE periodos (
         FOREIGN KEY (fk_curso) REFERENCES cursos(pk_curso) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- MATRICULAS E OFERTAS (RELAÇOES N:M)
+-- ==========================================
+-- MATRÍCULAS E OFERTAS (RELAÇÕES N:M)
+-- ==========================================
 
 CREATE TABLE aluno_curso (
     fk_aluno VARCHAR(15) NOT NULL,
@@ -153,19 +155,16 @@ CREATE TABLE campus_curso (
     CONSTRAINT fk_cc_curso FOREIGN KEY (fk_curso) REFERENCES cursos(pk_curso) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Define a grade curricular, quais maerias compoem qual periodo do curso
 CREATE TABLE periodo_disciplina (
     fk_periodo INT NOT NULL,
     fk_disciplina INT NOT NULL,
     
-    CONSTRAINT periodo_disciplina
-    PRIMARY KEY (fk_periodo, fk_disciplina),
+    CONSTRAINT periodo_disciplina PRIMARY KEY (fk_periodo, fk_disciplina),
     
     CONSTRAINT fk_pd_periodo FOREIGN KEY (fk_periodo) REFERENCES periodos(pk_periodo) ON DELETE CASCADE,
     CONSTRAINT fk_pd_disciplina FOREIGN KEY (fk_disciplina) REFERENCES disciplinas(pk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
---  quais matérias realmente tiveram turma naquele semestre
 CREATE TABLE semestre_disciplina (
     fk_semestre INT NOT NULL,
     fk_disciplina INT NOT NULL,
@@ -176,8 +175,9 @@ CREATE TABLE semestre_disciplina (
     CONSTRAINT fk_sd_disciplina FOREIGN KEY (fk_disciplina) REFERENCES disciplinas(pk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
--- HISTORICO ACADEMICO (NOTAS E FALTAS)
+-- ==========================================
+-- HISTÓRICO ACADÊMICO
+-- ==========================================
 
 CREATE TABLE faltas (
     fk_rgm VARCHAR(15) NOT NULL,
@@ -203,13 +203,10 @@ CREATE TABLE notas (
     fk_semestre INT NOT NULL,
     fk_disciplina INT NOT NULL,
     
-   
     valor_notaA DECIMAL(3,2) NOT NULL DEFAULT 0.00 CHECK (valor_notaA BETWEEN 0.00 AND 5.00),
     valor_notaB DECIMAL(3,2) NOT NULL DEFAULT 0.00 CHECK (valor_notaB BETWEEN 0.00 AND 5.00),
-
     
     valor_total_nota DECIMAL(4,2) GENERATED ALWAYS AS (valor_notaA + valor_notaB) STORED,
-
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT pk_notas 
@@ -230,13 +227,14 @@ CREATE TABLE boletim (
     fk_nota_semestre INT NOT NULL,
     fk_nota_disciplina INT NOT NULL,
     
-  
     CONSTRAINT fk_boletim_notas 
         FOREIGN KEY (fk_nota_rgm, fk_nota_semestre, fk_nota_disciplina) 
         REFERENCES notas (fk_rgm, fk_semestre, fk_disciplina) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- BOLETIM
+-- ==========================================
+-- VIEW: BOLETIM
+-- ==========================================
 CREATE OR REPLACE VIEW vw_boletim AS
 SELECT 
     a.pk_rgm AS 'RGM',
@@ -249,7 +247,6 @@ SELECT
     n.valor_total_nota AS 'Nota_Final',
     COALESCE(f.qtd_faltas, 0) AS 'Faltas',
     
-    -- Logica inteligente de aprovaçao
     CASE 
         WHEN n.valor_total_nota >= 6.00 AND COALESCE(f.qtd_faltas, 0) <= 15 THEN 'Aprovado'
         WHEN COALESCE(f.qtd_faltas, 0) > 15 THEN 'Reprovado por Falta'
@@ -266,14 +263,3 @@ JOIN semestres s ON n.fk_semestre = s.pk_semestre
 LEFT JOIN faltas f ON n.fk_rgm = f.fk_rgm 
                    AND n.fk_semestre = f.fk_semestre 
                    AND n.fk_disciplina = f.fk_disciplina;
-                   
-CREATE OR REPLACE VIEW vw_boletim AS 
-SELECT 
-a.pk_rgm AS 'RGM',
-p.nome_pessoa AS 'Nome',
-c.nome_curso AS 'Curso',
-d.nome_disciplina AS 'Disciplina',
-n.pk_notas AS 'Nota',
-f.pk_faltas AS 'faltas',
-
-
